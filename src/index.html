@@ -1,0 +1,109 @@
+<!doctype html>
+<html class="no-js" lang="">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>Multi Select</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/multi.css">
+  </head>
+  <body>
+    <div class="container">
+      <select id="favourite-team" data-placeholder="Your Favorite Football Team" class="multi-select" multiple="" tabindex="-1">
+        <optgroup label="NFC EAST">
+          <option value="DC">Dallas Cowboys</option>
+          <option value="NYG">New York Giants</option>
+          <option value="PE">Philadelphia Eagles</option>
+          <option value="WR">Washington Redskins</option>
+        </optgroup>
+        <optgroup label="NFC NORTH">
+          <option value="CB">Chicago Bears</option>
+          <option value="DL">Detroit Lions</option>
+          <option value="GPB">Green Bay Packers</option>
+          <option value="MV">Minnesota Vikings</option>
+        </optgroup>
+        <optgroup label="NFC SOUTH">
+          <option value="AF">Atlanta Falcons</option>
+          <option value="CP">Carolina Panthers</option>
+          <option value="NOS">New Orleans Saints</option>
+          <option value="TBB">Tampa Bay Buccaneers</option>
+        </optgroup>
+        <optgroup label="NFC WEST">
+          <option value="AC">Arizona Cardinals</option>
+          <option value="SLR">St. Louis Rams</option>
+          <option value="SF49">San Francisco 49ers</option>
+          <option value="SS">Seattle Seahawks</option>
+        </optgroup>
+        <optgroup label="AFC EAST">
+          <option value="BB">Buffalo Bills</option>
+          <option value="MD">Miami Dolphins</option>
+          <option value="NEP">New England Patriots</option>
+          <option value="NYJ">New York Jets</option>
+        </optgroup>
+        <optgroup label="AFC NORTH">
+          <option value="BR">Baltimore Ravens</option>
+          <option value="CBe">Cincinnati Bengals</option>
+          <option value="CBr">Cleveland Browns</option>
+          <option value="PS">Pittsburgh Steelers</option>
+        </optgroup>
+        <optgroup label="AFC SOUTH">
+          <option value="HT">Houston Texans</option>
+          <option value="IC">Indianapolis Colts</option>
+          <option value="JJ">Jacksonville Jaguars</option>
+          <option value="TT">Tennessee Titans</option>
+        </optgroup>
+        <optgroup label="AFC WEST">
+          <option value="DB">Denver Broncos</option>
+          <option value="KCC">Kansas City Chiefs</option>
+          <option value="OR">Oakland Raiders</option>
+          <option value="SDC">San Diego Chargers</option>
+        </optgroup>
+      </select>
+
+      <select id="favourite-bear" data-placeholder="Your Favorite Types of Bear" class="multi-select"multiple="" tabindex="-1">
+        <option>American Black Bear</option>
+        <option>Asiatic Black Bear</option>
+        <option>Brown Bear</option>
+        <option>Giant Panda</option>
+        <option>Sloth Bear</option>
+        <option>Sun Bear</option>
+        <option>Polar Bear</option>
+        <option>Spectacled Bear</option>
+      </select>
+    </div>
+
+    <script type="text/template" id="multi-template">
+      <div class="multi-container">
+        <ul class="multi-summary">
+          <li class="multi-summary__search-field"><input class="multi-summary__search-input" type="text" placeholder="<%= placeholder %>"></li>
+        </ul>
+        <ul class="multi-dropdown">
+          <% _.each(data, function(child) { %>
+            <% if (_.has(child, "group")) { %>
+              <li class="multi-dropdown__optgroup" data-key="<%= child.key %>"><%= child.group %></li>
+              <% _.each(child.items, function(item) { %>
+                <li class="multi-dropdown__option" data-value="<%= item.val %>" data-key="<%= item.key %>"><%= item.label %></li>
+              <% }); %>
+            <% } else { %>
+              <li class="multi-dropdown__option" data-value="<%= child.val %>" data-key="<%= child.key %>"><%= child.label %></li>
+            <% } %>
+          <% }); %>
+        </ul>
+      </div>
+    </script>
+
+    <script type="text/template" id="multi-item-template">
+      <% _.each(data, function(item) { %>
+        <li class="multi-summary__selected-item" data-value="<%= item.val %>" data-key="<%= item.key %>"><%= item.label %><button class="multi-summary__remove-item"></button></li>
+      <% }); %>
+    </script>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.2.2/backbone-min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/backbone-localstorage.js/1.0/backbone.localStorage-min.js" type="text/javascript"></script>
+    <script src="js/multi.js"></script>
+  </body>
+</html>

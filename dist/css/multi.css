@@ -1,0 +1,110 @@
+.multi {
+  padding: 30px 30px 0;
+  position: relative; }
+  .multi--mobile {
+    padding: 15px 15px 0; }
+
+.multi-select {
+  display: none; }
+  .multi--mobile .multi-select {
+    display: block;
+    height: 100%;
+    opacity: 0;
+    position: absolute;
+    width: 100%;
+    z-index: 20; }
+
+.multi-summary {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: text;
+  height: auto;
+  list-style: none;
+  margin: 0;
+  padding: 3px;
+  position: relative;
+  z-index: 10; }
+  .multi-summary:before,
+  .multi-summary:after {
+    content: " ";
+    display: table; }
+  .multi-summary:after {
+    clear: both; }
+  .multi-summary--selected {
+    border-color: #337ab7;
+    -webkit-box-shadow: 0 0 3px 0 #337ab7;
+    box-shadow: 0 0 3px 0 #337ab7; }
+  .multi-summary__search-input {
+    border: none;
+    height: 35px;
+    margin: 3px;
+    padding: 0 5px;
+    width: 250px; }
+    .multi-summary__search-input:focus {
+      border: none;
+      box-shadow: none;
+      outline: 0; }
+  .multi-summary__selected-item {
+    background-color: #337ab7;
+    border-radius: 3px;
+    color: #fff;
+    float: left;
+    margin: 3px;
+    padding: 5px 10px; }
+  .multi-summary__remove-item {
+    background-color: transparent;
+    border: none;
+    border-radius: 3px;
+    left: 4px;
+    padding: 3px 9px;
+    position: relative; }
+    .multi-summary__remove-item:after {
+      content: "x";
+      opacity: 0.5;
+      position: relative;
+      top: -1px; }
+    .multi-summary__remove-item:hover {
+      background-color: #285f8f; }
+      .multi-summary__remove-item:hover:after {
+        opacity: 1; }
+    .multi--mobile .multi-summary__remove-item {
+      display: none; }
+
+.multi-container {
+  position: relative; }
+
+.multi-dropdown {
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-top: none;
+  left: -999em;
+  list-style: none;
+  margin: 0;
+  max-height: 0;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  top: 100%;
+  transition: max-height 0.3s ease;
+  width: 100%;
+  z-index: 20; }
+  .multi-dropdown--expanded {
+    left: 0;
+    max-height: 20em;
+    overflow: auto; }
+  .multi-dropdown__optgroup {
+    font-weight: bold;
+    padding: 0.5em 1em 0.15em 1em; }
+  .multi-dropdown__option {
+    cursor: pointer;
+    font-weight: normal;
+    padding: 0.15em 1em 0.15em 2em; }
+    .multi-dropdown__option--selected {
+      background-color: #f2f2f2; }
+    .multi-dropdown__option--disabled {
+      color: #aaa;
+      cursor: default; }
+      .multi-dropdown__option--disabled:hover {
+        background: none; }
+    .multi-dropdown__option--highlight {
+      text-decoration: underline; }
