@@ -5,98 +5,6 @@ var Multi = (function(Backbone) {
     defaults: {
       selected: []
     }
-
-    // initialize: function() {
-    //   console.log(this.cid);
-    //   this.on('all', this.alert, this);
-    // },
-
-    // alert: function() {
-    //   console.log(this.cid, "I'm changing!!");
-    // }
-  });
-}(Backbone));
-
-// var Multi2 = (function(Backbone) {
-//   return Backbone.Model.extend({
-//     defaults: {
-//       selected: []
-//     }
-//   });
-// }(Backbone));
-
-// var Multi2Collection = (function(Backbone) {
-//   return Backbone.Collection.extend({
-//     model: Multi2,
-//     localStorage: new Store("multis")
-//   });
-// }(Backbone));
-
-// var Multi2InstanceView = (function(Backbone, $) {
-//   return Backbone.View.extend({
-//     initialize: function() {
-//       console.log("el", this.$el);
-//       this.listenTo(this.model, "change:selected", function() {
-//         console.log(this.model.get("selected"));
-//       });
-//     },
-
-//     events: {
-//       "change .multi-select": "updateModel"
-//     },
-
-//     render: function() {
-//       this.$el.append("<p class'model'></p>");
-//       return this;
-//     },
-
-//     updateModel: function() {
-//       var selected = $(event.target).find(":selected").text();
-//       this.model.set("selected", selected);
-//     }
-//   });
-// }(Backbone, jQuery));
-
-// var Multi2View = (function(Backbone, $) {
-//   return Backbone.View.extend({
-//     initialize: function() {
-//       var _self = this;
-//       console.log("hello");
-//       this.multi2Collection = new Multi2Collection;
-
-//       this.listenTo(this.multi2Collection, "add", this.addOne);
-
-//       $.each($(".multi-select"), function() {
-//         var id = $(this).attr("id");
-//         _self.multi2Collection.create({multiId: id});
-//       });
-//     },
-
-//     addOne: function(model) {
-//       var id = model.get("multiId");
-//       var $select = this.$el.find("#" + id);
-//       $select.wrap("<div class='multi'></div>");
-
-//       var view = new Multi2InstanceView({
-//         el: $select.parent(),
-//         model: model
-//       });
-//       view.render().el;
-//     }
-//   });
-// }(Backbone, jQuery));
-
-// $(document).ready(function() {
-//   window.multi2View = new Multi2View({ 
-//     el: $("body")
-//   });
-// });
-var MultiCollection = (function(Backbone) {
-  "use strict";
-
-  return Backbone.Collection.extend({
-    model: Multi,
-    localStorage: new Store("multis")
   });
 }(Backbone));
 
@@ -124,8 +32,6 @@ var MultiInstanceView = (function(Backbone, $) {
       
       this.$multiSelect = this.$el.find(".multi-select");
 
-      console.log(this.$el);
-
       this.multiExpanded = false;
       this.mobileCheck();
       this.convertSelect();
@@ -136,9 +42,6 @@ var MultiInstanceView = (function(Backbone, $) {
       });
 
       this.listenTo(this.model, "change", this.updateSelected);
-      this.listenTo(this.model, "change", function() {
-        console.log("model", this.model);
-      });
     },
 
     events: {
@@ -303,7 +206,8 @@ var MultiInstanceView = (function(Backbone, $) {
 
     openDropDown: function(event) {
       if (!this.isMobile()) {
-        if (event === undefined || (!$(event.target).hasClass(classes.removeItem) && this.multiExpanded === false)) {
+        if (event === undefined || 
+           (!$(event.target).hasClass(classes.removeItem) && this.multiExpanded === false)) {
           this.$multiContainer.addClass(classes.containerExpanded);
           this.$multiSummary.addClass(classes.summarySelected);
           this.$multiDropdown.addClass(classes.dropdownExpanded).scrollTop(0);
@@ -316,8 +220,8 @@ var MultiInstanceView = (function(Backbone, $) {
     },
 
     closeDropDown: function(event) {
-      if (!event || (!$(event.target).hasClass(classes.removeItem) 
-        && !$(event.target).parents().hasClass(classes.containerExpanded))) {
+      if (!event || (!$(event.target).hasClass(classes.removeItem) && 
+         !$(event.target).parents().hasClass(classes.containerExpanded))) {
         this.$multiContainer.removeClass(classes.containerExpanded);
         this.$multiSummary.removeClass(classes.summarySelected);
         this.$multiDropdown.removeClass(classes.dropdownExpanded);
@@ -340,7 +244,6 @@ var MultiInstanceView = (function(Backbone, $) {
 
         _.each(this.$multiSelect.find(":selected"), function(child) {
           var $child = $(child);
-          console.log($child);
           var itemText = $child.text();
           var itemKey = $child.data("key");
           var itemVal = $child.val();
@@ -434,8 +337,6 @@ var MultiInstanceView = (function(Backbone, $) {
         }
       });
 
-      console.log(JSON.stringify(this.selectObj));
-
       this.render();
     },
 
@@ -482,36 +383,3 @@ $(document).ready(function() {
     el: $("body")
   });
 });
-
-// var MultiView = (function(Backbone, $) {
-//   return Backbone.View.extend({
-//     initialize: function() {
-//       var _self = this;
-//       this.multiCollection = new MultiCollection;
-
-//       this.listenTo(this.multiCollection, "add", this.addOne);
-
-//       $.each($(".multi-select"), function() {
-//         var id = $(this).attr("id");
-//         _self.multiCollection.create({multiId: id});
-//       });
-//     },
-
-//     addOne: function(model) {
-//       var id = model.get("multiId");
-//       var $select = this.$el.find("#" + id);
-//       $select.wrap("<div class='multi'></div>");
-
-//       var view = new MultiInstanceView({
-//         el: $select.parent(),
-//         model: model
-//       });
-//     }
-//   });
-// }(Backbone, jQuery));
-
-// $(document).ready(function() {
-//   window.multiView = new MultiView({ 
-//     el: $("body")
-//   });
-// });

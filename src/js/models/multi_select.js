@@ -5,14 +5,5 @@ var Multi = (function(Backbone) {
     defaults: {
       selected: []
     }
-
-    // initialize: function() {
-    //   console.log(this.cid);
-    //   this.on('all', this.alert, this);
-    // },
-
-    // alert: function() {
-    //   console.log(this.cid, "I'm changing!!");
-    // }
   });
 }(Backbone));

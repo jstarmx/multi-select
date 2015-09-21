@@ -22,8 +22,6 @@ var MultiInstanceView = (function(Backbone, $) {
       
       this.$multiSelect = this.$el.find(".multi-select");
 
-      console.log(this.$el);
-
       this.multiExpanded = false;
       this.mobileCheck();
       this.convertSelect();
@@ -34,9 +32,6 @@ var MultiInstanceView = (function(Backbone, $) {
       });
 
       this.listenTo(this.model, "change", this.updateSelected);
-      this.listenTo(this.model, "change", function() {
-        console.log("model", this.model);
-      });
     },
 
     events: {
@@ -201,7 +196,8 @@ var MultiInstanceView = (function(Backbone, $) {
 
     openDropDown: function(event) {
       if (!this.isMobile()) {
-        if (event === undefined || (!$(event.target).hasClass(classes.removeItem) && this.multiExpanded === false)) {
+        if (event === undefined || 
+           (!$(event.target).hasClass(classes.removeItem) && this.multiExpanded === false)) {
           this.$multiContainer.addClass(classes.containerExpanded);
           this.$multiSummary.addClass(classes.summarySelected);
           this.$multiDropdown.addClass(classes.dropdownExpanded).scrollTop(0);
@@ -214,8 +210,8 @@ var MultiInstanceView = (function(Backbone, $) {
     },
 
     closeDropDown: function(event) {
-      if (!event || (!$(event.target).hasClass(classes.removeItem) 
-        && !$(event.target).parents().hasClass(classes.containerExpanded))) {
+      if (!event || (!$(event.target).hasClass(classes.removeItem) && 
+         !$(event.target).parents().hasClass(classes.containerExpanded))) {
         this.$multiContainer.removeClass(classes.containerExpanded);
         this.$multiSummary.removeClass(classes.summarySelected);
         this.$multiDropdown.removeClass(classes.dropdownExpanded);
@@ -238,7 +234,6 @@ var MultiInstanceView = (function(Backbone, $) {
 
         _.each(this.$multiSelect.find(":selected"), function(child) {
           var $child = $(child);
-          console.log($child);
           var itemText = $child.text();
           var itemKey = $child.data("key");
           var itemVal = $child.val();
@@ -331,8 +326,6 @@ var MultiInstanceView = (function(Backbone, $) {
           i++;
         }
       });
-
-      console.log(JSON.stringify(this.selectObj));
 
       this.render();
     },
