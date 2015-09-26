@@ -19,7 +19,7 @@ var MultiInstanceView = (function(Backbone, $) {
 
       this.multiTemplate = _.template($('#multi-template').html());
       this.multiItemTemplate = _.template($('#multi-item-template').html());
-      
+
       this.$multiSelect = this.$el.find(".multi-select");
 
       this.multiExpanded = false;
@@ -62,6 +62,10 @@ var MultiInstanceView = (function(Backbone, $) {
     },
 
     keyboardInteract: function(event) {
+      var openDropDownKeys = [13, 40]
+      $.merge(openDropDownKeys, _.range(48, 57));
+      $.merge(openDropDownKeys, _.range(65, 90));
+      $.merge(openDropDownKeys, _.range(96, 105));
       if (this.multiExpanded) {
         switch (event.which) {
           case 40:
@@ -79,7 +83,7 @@ var MultiInstanceView = (function(Backbone, $) {
           default:
             this.filterList();
         }
-      } else {
+      } else if (openDropDownKeys.indexOf(event.which) > -1) {
         this.openDropDown();
       }
     },
@@ -88,39 +92,49 @@ var MultiInstanceView = (function(Backbone, $) {
       var _self = this;
       var searchString = this.$multiInput.val().toLowerCase();
 
-      _.each(this.selectObj, function(optgroup) {
-        var $optgroup = _self.$multiDropdown.find("[data-key='" + optgroup.key + "']");
-        var optgroupContainsSearchString = Boolean(optgroup.group.toLowerCase().indexOf(searchString) >= 0);
-        var count = 0;
+      _.each(this.selectObj, function(child) {
+        if (child.isGroup) {
+          var $optgroup = _self.$multiDropdown.find("[data-key='" + child.key + "']");
+          var optgroupContainsSearchString = Boolean(child.group.toLowerCase().indexOf(searchString) > -1);
+          var count = 0;
 
-        if (searchString === "" || !optgroupContainsSearchString) {
-          _.each(optgroup.items, function(item) {
-            var $option = _self.$multiDropdown.find("[data-key='" + item.key + "']");
+          if (searchString === "" || !optgroupContainsSearchString) {
+            _.each(child.items, function(item) {
+              _self.findOptionToHighlight(searchString, item, count);
+            });
+          }
 
-            if (item.label.toLowerCase().indexOf(searchString) === -1) {
-              $option.addClass("hidden");
-            } else {
-              $option.removeClass("hidden");
-              _self.highlightSelection($option, searchString);
-              count++;
-            }
-          });
-        }
-        
-        if (count === 0 && !optgroupContainsSearchString) {
-          $optgroup.addClass("hidden");
+          if (count === 0 && !optgroupContainsSearchString) {
+            $optgroup.addClass("hidden");
+          } else {
+            $optgroup.removeClass("hidden");
+          }
+
+          if (optgroupContainsSearchString) {
+            _self.highlightSelection($optgroup, searchString);
+          } else {
+            _self.removeHighlight($optgroup);
+          }
         } else {
-          $optgroup.removeClass("hidden");
-        }
-
-        if (optgroupContainsSearchString) {
-          _self.highlightSelection($optgroup, searchString);
-        } else {
-          _self.removeHighlight($optgroup);
+          _self.findOptionToHighlight(searchString, child);
         }
       });
 
       this.setCurrentOption();
+    },
+
+    findOptionToHighlight: function(searchString, option, count) {
+      var $option = this.$multiDropdown.find("[data-key='" + option.key + "']");
+
+      if (option.label.toLowerCase().indexOf(searchString) === -1) {
+        $option.addClass("hidden");
+      } else {
+        $option.removeClass("hidden");
+        this.highlightSelection($option, searchString);
+        if (count != undefined) {
+          count++;
+        }
+      }
     },
 
     highlightSelection: function($option, searchString) {
@@ -196,7 +210,7 @@ var MultiInstanceView = (function(Backbone, $) {
 
     openDropDown: function(event) {
       if (!this.isMobile()) {
-        if (event === undefined || 
+        if (event === undefined ||
            (!$(event.target).hasClass(classes.removeItem) && this.multiExpanded === false)) {
           this.$multiContainer.addClass(classes.containerExpanded);
           this.$multiSummary.addClass(classes.summarySelected);
@@ -210,7 +224,7 @@ var MultiInstanceView = (function(Backbone, $) {
     },
 
     closeDropDown: function(event) {
-      if (!event || (!$(event.target).hasClass(classes.removeItem) && 
+      if (!event || (!$(event.target).hasClass(classes.removeItem) &&
          !$(event.target).parents().hasClass(classes.containerExpanded))) {
         this.$multiContainer.removeClass(classes.containerExpanded);
         this.$multiSummary.removeClass(classes.summarySelected);
@@ -237,7 +251,7 @@ var MultiInstanceView = (function(Backbone, $) {
           var itemText = $child.text();
           var itemKey = $child.data("key");
           var itemVal = $child.val();
-          
+
           selectedCurrent.push({
             key: itemKey,
             val: itemVal,
@@ -273,7 +287,7 @@ var MultiInstanceView = (function(Backbone, $) {
 
     removeItem: function(event) {
       var itemKey = $(event.target).parent().data("key");
-      var selectedCurrent = this.model.get("selected");
+      var selectedCurrent = _.clone(this.model.get("selected"));
 
       for(var i in selectedCurrent) {
         if(selectedCurrent.hasOwnProperty(i) && selectedCurrent[i].key == itemKey) {
@@ -312,7 +326,8 @@ var MultiInstanceView = (function(Backbone, $) {
           _self.selectObj.push({
             key: j,
             group: $child.attr("label"),
-            items: options
+            items: options,
+            isGroup: true
           });
 
           i++;
@@ -327,6 +342,7 @@ var MultiInstanceView = (function(Backbone, $) {
         }
       });
 
+      console.log(this.selectObj);
       this.render();
     },
 
