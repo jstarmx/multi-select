@@ -12,34 +12,33 @@ var MultiInstanceView = (function(Backbone, $) {
   "use strict";
 
   var classes = {
+    multi: "multi",
     containerExpanded: "multi-container--expanded",
-    summarySelected: "multi-summary--selected",
-    summarySelectedItem: ".multi-summary__selected-item",
-    dropdownExpanded: "multi-dropdown--expanded",
-    option: "multi-dropdown__option",
-    optionHighlight: "multi-dropdown__option--highlight",
-    optionSelected: "multi-dropdown__option--selected",
-    optionDisabled: "multi-dropdown__option--disabled",
-    removeItem: "multi-summary__remove-item"
+    summary: {
+      selected: "multi-summary--selected",
+      selectedItem: "multi-summary__selected-item",
+      removeItem: "multi-summary__remove-item"
+    },
+    dropdown: {
+      expanded: "multi-dropdown--expanded",
+      option: "multi-dropdown__option",
+      optionHighlight: "multi-dropdown__option--highlight",
+      optionSelected: "multi-dropdown__option--selected",
+      optionDisabled: "multi-dropdown__option--disabled",
+    }
   };
 
   return Backbone.View.extend({
+    multiTemplate: _.template($('#multi-template').html()),
+    multiItemTemplate: _.template($('#multi-item-template').html()),
+    
     initialize: function() {
       var _self = this;
-
-      this.multiTemplate = _.template($('#multi-template').html());
-      this.multiItemTemplate = _.template($('#multi-item-template').html());
-
       this.$multiSelect = this.$el.find(".multi-select");
-
+      this.$el.attr("data-model-id", this.model.cid);
       this.multiExpanded = false;
       this.mobileCheck();
       this.convertSelect();
-
-      //Move to multi_view
-      $(document).on('click', function(event) {
-        _self.closeDropDown(event);
-      });
 
       this.listenTo(this.model, "change", this.updateSelected);
     },
@@ -48,7 +47,7 @@ var MultiInstanceView = (function(Backbone, $) {
       "click .multi-dropdown__option": "addItem",
       "change .multi-select": "addItem",
       "mouseenter .multi-dropdown__option": "hoverOverOption",
-      "click .multi-summary__remove-item": "removeItem",
+      "click .multi-summary .multi-summary__remove-item": "removeItem",
       "click .multi-summary": "openDropDown",
       "keyup .multi-summary__search-input": "keyboardInteract"
     },
@@ -72,7 +71,7 @@ var MultiInstanceView = (function(Backbone, $) {
     },
 
     keyboardInteract: function(event) {
-      var openDropDownKeys = [13, 40]
+      var openDropDownKeys = [13, 40];
       $.merge(openDropDownKeys, _.range(48, 57));
       $.merge(openDropDownKeys, _.range(65, 90));
       $.merge(openDropDownKeys, _.range(96, 105));
@@ -141,7 +140,7 @@ var MultiInstanceView = (function(Backbone, $) {
       } else {
         $option.removeClass("hidden");
         this.highlightSelection($option, searchString);
-        if (count != undefined) {
+        if (count !== undefined) {
           count++;
         }
       }
@@ -151,16 +150,16 @@ var MultiInstanceView = (function(Backbone, $) {
       var optionText = $option.text();
       var startPos = optionText.toLowerCase().indexOf(searchString);
       var endPos = startPos + searchString.length;
-      var output = [optionText.slice(0, startPos), "<span class='" + classes.optionHighlight + "'>", optionText.slice(startPos, endPos), "</span>", optionText.slice(endPos)].join('');
+      var output = [optionText.slice(0, startPos), "<span class='" + classes.dropdown.optionHighlight + "'>", optionText.slice(startPos, endPos), "</span>", optionText.slice(endPos)].join('');
       $option.html(output);
     },
 
     removeHighlight: function($option) {
-      var $highlightedText = $option.find("." + classes.optionHighlight).contents().unwrap();
+      var $highlightedText = $option.find("." + classes.dropdown.optionHighlight).contents().unwrap();
     },
 
     setCurrentOption: function() {
-      var $newOption = this.$multiDropdown.find("." + classes.option).not("." + classes.optionDisabled).not(".hidden").first();
+      var $newOption = this.$multiDropdown.find("." + classes.dropdown.option).not("." + classes.dropdown.optionDisabled).not(".hidden").first();
       this.hightlightNewOption($newOption);
     },
 
@@ -172,10 +171,12 @@ var MultiInstanceView = (function(Backbone, $) {
     },
 
     highlightSiblingOption: function(direction) {
+      var $newOption = null;
+      
       if (direction === "next") {
-        var $newOption = this.$currentOption.nextAll("." + classes.option).not("." + classes.optionDisabled).not(".hidden").first();
+        $newOption = this.$currentOption.nextAll("." + classes.dropdown.option).not("." + classes.dropdown.optionDisabled).not(".hidden").first();
       } else if (direction === "prev") {
-        var $newOption = this.$currentOption.prevAll("." + classes.option).not("." + classes.optionDisabled).not(".hidden").first();
+        $newOption = this.$currentOption.prevAll("." + classes.dropdown.option).not("." + classes.dropdown.optionDisabled).not(".hidden").first();
       }
 
       if ($newOption.length) {
@@ -189,10 +190,10 @@ var MultiInstanceView = (function(Backbone, $) {
 
     hightlightNewOption: function($newOption) {
       if (this.$currentOption) {
-        this.$currentOption.removeClass(classes.optionSelected);
+        this.$currentOption.removeClass(classes.dropdown.optionSelected);
       }
       this.$currentOption = $newOption;
-      this.$currentOption.addClass(classes.optionSelected);
+      this.$currentOption.addClass(classes.dropdown.optionSelected);
     },
 
     optionVisible: function() {
@@ -220,42 +221,49 @@ var MultiInstanceView = (function(Backbone, $) {
 
     openDropDown: function(event) {
       if (!this.isMobile()) {
-        if (event === undefined ||
-           (!$(event.target).hasClass(classes.removeItem) && this.multiExpanded === false)) {
-          this.$multiContainer.addClass(classes.containerExpanded);
-          this.$multiSummary.addClass(classes.summarySelected);
-          this.$multiDropdown.addClass(classes.dropdownExpanded).scrollTop(0);
-          this.setCurrentOption();
-          this.multiExpanded = true;
-          this.filterList();
+        if (!event ||
+            this.multiExpanded === false &&
+            !$(event.target).hasClass(classes.summary.removeItem)) {
+              this.toggleDropDown(true);
+              this.$multiDropdown.scrollTop(0);
+              this.setCurrentOption();
+              this.filterList();
         }
         this.$multiInput.focus();
       }
     },
 
     closeDropDown: function(event) {
-      if (!event || (!$(event.target).hasClass(classes.removeItem) &&
-         !$(event.target).parents().hasClass(classes.containerExpanded))) {
-        this.$multiContainer.removeClass(classes.containerExpanded);
-        this.$multiSummary.removeClass(classes.summarySelected);
-        this.$multiDropdown.removeClass(classes.dropdownExpanded);
-        this.multiExpanded = false;
+      if (!event || !this.clicked($(event.target))) {
+        this.toggleDropDown(false);
       }
+    },
+    
+    toggleDropDown: function(open) {
+      this.$multiContainer.toggleClass(classes.containerExpanded, open);
+      this.$multiSummary.toggleClass(classes.summary.selected, open);
+      this.$multiDropdown.toggleClass(classes.dropdown.expanded, open);
+      this.multiExpanded = open;
+    },
+    
+    clicked: function($target) {
+      return $target.parents("." + classes.multi).data("model-id") == this.model.cid ||
+             $target.parent("." + classes.summary.selectedItem).data("model-id") == this.model.cid;
     },
 
     updateSelected: function(itemText) {
-      this.$multiSummary.find(classes.summarySelectedItem).remove();
-
+      this.$multiSummary.find("." + classes.summary.selectedItem).remove();
       var html = this.multiItemTemplate({
-        data: this.model.get("selected")
+        data: this.model.get("selected"),
+        model: this.model.cid
       });
       this.$multiSummary.prepend(html);
     },
 
     addItem: function() {
+      var selectedCurrent = [];
+      
       if (this.isMobile()) {
-        var selectedCurrent = [];
-
         _.each(this.$multiSelect.find(":selected"), function(child) {
           var $child = $(child);
           var itemText = $child.text();
@@ -268,16 +276,16 @@ var MultiInstanceView = (function(Backbone, $) {
             label: itemText
           });
         });
-
+        
         this.model.set({selected: selectedCurrent});
       } else {
-        var $target = this.$multiDropdown.find("." + classes.optionSelected);
-
-        if (!$target.hasClass(classes.optionDisabled)) {
+        var $target = this.$multiDropdown.find("." + classes.dropdown.optionSelected);
+        
+        if (!$target.hasClass(classes.dropdown.optionDisabled)) {
           var itemText = $target.text();
           var itemKey = $target.data("key");
           var itemVal = $target.data("value");
-          var selectedCurrent = _.clone(this.model.get("selected"));
+          selectedCurrent = _.clone(this.model.get("selected"));
 
           selectedCurrent.push({
             key: itemKey,
@@ -285,10 +293,10 @@ var MultiInstanceView = (function(Backbone, $) {
             label: itemText
           });
 
+          $target.addClass(classes.dropdown.optionDisabled);
           this.model.set({selected: selectedCurrent});
-          $target.addClass(classes.optionDisabled);
           this.$multiSelect.find("option[data-key='" + itemKey + "']").attr("selected", "selected");
-          this.$multiDropdown.find("." + classes.optionSelected).removeClass(classes.optionSelected);
+          this.$multiDropdown.children().removeClass(classes.dropdown.optionSelected);
           this.$multiInput.focus().val("");
           this.closeDropDown();
         }
@@ -306,7 +314,7 @@ var MultiInstanceView = (function(Backbone, $) {
       }
 
       this.model.set({selected: selectedCurrent});
-      this.$multiDropdown.find("[data-key='" + itemKey + "']").removeClass(classes.optionDisabled);
+      this.$multiDropdown.find("[data-key='" + itemKey + "']").removeClass(classes.dropdown.optionDisabled);
       this.$multiSelect.find("option[data-key='" + itemKey + "']").attr("selected", false);
       this.$multiInput.focus();
     },
@@ -352,7 +360,6 @@ var MultiInstanceView = (function(Backbone, $) {
         }
       });
 
-      console.log(this.selectObj);
       this.render();
     },
 
@@ -364,7 +371,7 @@ var MultiInstanceView = (function(Backbone, $) {
 
     isMobile: function() {
       var check = false;
-      (function(a){if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(a)||/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0,4)))check = true})(navigator.userAgent||navigator.vendor||window.opera);
+      (function(a){if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(a)||/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0,4)))check = true;})(navigator.userAgent||navigator.vendor||window.opera);
       return check;
     }
   });
@@ -375,8 +382,13 @@ var MultiView = (function(Backbone, $, window) {
 
   return Backbone.View.extend({
     initialize: function() {
+      var _self = this;
       this.$select = this.$el.find(".multi-select");
       this.findSelects();
+      
+      $(document).on('click', function(event) {
+        _self.closeDropDown(event);
+      });
     },
 
     findSelects: function() {
@@ -387,15 +399,21 @@ var MultiView = (function(Backbone, $, window) {
 
         window.multiSelects.push(new MultiInstanceView({
           el: $(this).parent(),
-          model: new Multi
+          model: new Multi()
         }));
+      });
+    },
+    
+    closeDropDown: function(event) {
+      _.each(window.multiSelects, function(multiSelect) {
+        multiSelect.closeDropDown(event);
       });
     }
   });
 }(Backbone, jQuery, window));
 
 $(document).ready(function() {
-  window.multiView = new MultiView({ 
+  window.multiView = new MultiView({
     el: $("body")
   });
 });

@@ -3,8 +3,13 @@ var MultiView = (function(Backbone, $, window) {
 
   return Backbone.View.extend({
     initialize: function() {
+      var _self = this;
       this.$select = this.$el.find(".multi-select");
       this.findSelects();
+      
+      $(document).on('click', function(event) {
+        _self.closeDropDown(event);
+      });
     },
 
     findSelects: function() {
@@ -15,15 +20,21 @@ var MultiView = (function(Backbone, $, window) {
 
         window.multiSelects.push(new MultiInstanceView({
           el: $(this).parent(),
-          model: new Multi
+          model: new Multi()
         }));
+      });
+    },
+    
+    closeDropDown: function(event) {
+      _.each(window.multiSelects, function(multiSelect) {
+        multiSelect.closeDropDown(event);
       });
     }
   });
 }(Backbone, jQuery, window));
 
 $(document).ready(function() {
-  window.multiView = new MultiView({ 
+  window.multiView = new MultiView({
     el: $("body")
   });
 });

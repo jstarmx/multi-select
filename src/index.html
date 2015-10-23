@@ -96,7 +96,7 @@
 
     <script type="text/template" id="multi-item-template">
       <% _.each(data, function(item) { %>
-        <li class="multi-summary__selected-item" data-value="<%= item.val %>" data-key="<%= item.key %>"><%= item.label %><button class="multi-summary__remove-item"></button></li>
+        <li class="multi-summary__selected-item" data-value="<%= item.val %>" data-key="<%= item.key %>" data-model-id="<%= model %>"><%= item.label %><button class="multi-summary__remove-item"></button></li>
       <% }); %>
     </script>
 
