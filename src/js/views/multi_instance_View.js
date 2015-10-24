@@ -2,7 +2,10 @@ var MultiInstanceView = (function(Backbone, $) {
   "use strict";
 
   var classes = {
-    multi: "multi",
+    multi: {
+      self: "multi",
+      mobile: "multi-mobile"
+    },
     containerExpanded: "multi-container--expanded",
     summary: {
       selected: "multi-summary--selected",
@@ -140,7 +143,10 @@ var MultiInstanceView = (function(Backbone, $) {
       var optionText = $option.text();
       var startPos = optionText.toLowerCase().indexOf(searchString);
       var endPos = startPos + searchString.length;
-      var output = [optionText.slice(0, startPos), "<span class='" + classes.dropdown.optionHighlight + "'>", optionText.slice(startPos, endPos), "</span>", optionText.slice(endPos)].join('');
+      var output = [optionText.slice(0, startPos),
+        "<span class='" + classes.dropdown.optionHighlight + "'>",
+        optionText.slice(startPos, endPos), "</span>",
+        optionText.slice(endPos)].join('');
       $option.html(output);
     },
 
@@ -149,7 +155,9 @@ var MultiInstanceView = (function(Backbone, $) {
     },
 
     setCurrentOption: function() {
-      var $newOption = this.$multiDropdown.find("." + classes.dropdown.option).not("." + classes.dropdown.optionDisabled).not(".hidden").first();
+      var $newOption = this.$multiDropdown
+        .find("." + classes.dropdown.option)
+        .not("." + classes.dropdown.optionDisabled).not(".hidden").first();
       this.hightlightNewOption($newOption);
     },
 
@@ -164,9 +172,11 @@ var MultiInstanceView = (function(Backbone, $) {
       var $newOption = null;
       
       if (direction === "next") {
-        $newOption = this.$currentOption.nextAll("." + classes.dropdown.option).not("." + classes.dropdown.optionDisabled).not(".hidden").first();
+        $newOption = this.$currentOption.nextAll("." + classes.dropdown.option)
+          .not("." + classes.dropdown.optionDisabled).not(".hidden").first();
       } else if (direction === "prev") {
-        $newOption = this.$currentOption.prevAll("." + classes.dropdown.option).not("." + classes.dropdown.optionDisabled).not(".hidden").first();
+        $newOption = this.$currentOption.prevAll("." + classes.dropdown.option)
+          .not("." + classes.dropdown.optionDisabled).not(".hidden").first();
       }
 
       if ($newOption.length) {
@@ -237,7 +247,7 @@ var MultiInstanceView = (function(Backbone, $) {
     },
     
     clicked: function($target) {
-      return $target.parents("." + classes.multi).data("model-id") == this.model.cid ||
+      return $target.parents("." + classes.multi.self).data("model-id") == this.model.cid ||
              $target.parent("." + classes.summary.selectedItem).data("model-id") == this.model.cid;
     },
 
@@ -311,8 +321,8 @@ var MultiInstanceView = (function(Backbone, $) {
 
     convertSelect: function() {
       var _self = this;
-      this.selectObj = [];
       var i = 1;
+      this.selectObj = [];
 
       _.each(this.$multiSelect.children(), function(child) {
         var $child = $(child);
@@ -355,7 +365,7 @@ var MultiInstanceView = (function(Backbone, $) {
 
     mobileCheck: function() {
       if (this.isMobile()) {
-        this.$el.addClass("multi--mobile");
+        this.$el.addClass(classes.multi.mobile);
       }
     },
 

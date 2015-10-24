@@ -8,7 +8,7 @@ var MultiView = (function(Backbone, $, window) {
       this.findSelects();
       
       $(document).on('click', function(event) {
-        _self.closeDropDown(event);
+        _self.closeDropDowns(event);
       });
     },
 
@@ -19,13 +19,13 @@ var MultiView = (function(Backbone, $, window) {
         $(this).wrap("<div class='multi'></div>");
 
         window.multiSelects.push(new MultiInstanceView({
-          el: $(this).parent(),
+          el: $(this).parent().get(0),
           model: new Multi()
         }));
       });
     },
     
-    closeDropDown: function(event) {
+    closeDropDowns: function(event) {
       _.each(window.multiSelects, function(multiSelect) {
         multiSelect.closeDropDown(event);
       });
